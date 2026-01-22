@@ -78,8 +78,10 @@ public:
   
   // *-- Simple Getters
   
-  bool                      GetSign()          {return this->sgn;}
-  std::vector<uLong_32t>*   GetArray()         {return this->number;}
+  size_t                    size()            const {return this->number->size();};
+  size_t                    GetSize()         const {return this->number->size();};
+  bool                      GetSign()         const {return this->sgn;}
+  std::vector<uLong_32t>*   GetArray()        const {return this->number;}
   
   
   // *-- Simple Setters
@@ -159,11 +161,41 @@ public:
     }
     if (carry != 0) this->number->push_back(carry);
     return;
-  }
+  }//End of MPInt::SimpleMultiply
   
-//  MPInt operator+=(const MPInt& other) {
-//
-//  }
+  
+  // Addition of two MPInt types
+  MPInt& operator+=(const MPInt& other) {
+    const std::vector<uLong_32t>* other_MP = other.GetArray();
+    
+    // base case--both MPInts have digits
+    uLong_32t carry = 0;
+    int i;
+    while (i < this->number->size() && i < other_MP->size()) {
+      uLong_64t temp = static_cast<uLong_64t>(this->number->at(i)) + other.number->at(i) + carry;
+      this->number->at(i) = temp & UINT_MAX;
+      carry = temp >> 32;
+      ++i;
+    }// End of both digits
+    
+    // Case: This MPInt is longer than the other
+    while (i < this->number->size()) {
+      uLong_64t temp = static_cast<uLong_64t>(this->number->at(i)) + carry;
+      this->number->at(i) = temp & UINT_MAX;
+      carry = temp >> 32;
+      ++i;
+    }// End this digits
+    
+    // Case: The other MPInt is longer than this
+    while (i < other_MP->size()) {
+      uLong_64t temp = static_cast<uLong_64t>(other_MP->at(i)) + carry;
+      this->number->at(i) = temp & UINT_MAX;
+      carry = temp >> 32;
+      ++i;
+    }// End other digits
+    
+    return *this;
+  }// End of MPInt::operator+=
   
   // *-- Functional Utility
   
@@ -226,7 +258,7 @@ public:
     // option not recognized
     std::cerr << "Error in <MPInt::GetDigits>: option flag not recognized. Check inputs." << std::endl;
     return std::string();
-  }
+  }// End of MPInt::GetDigits
   
   // Print the output of GetDigits
   void PrintDigits(std::string option = "decimal", bool endline = true) {
