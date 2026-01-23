@@ -170,9 +170,9 @@ public:
     
     // base case--both MPInts have digits
     uLong_32t carry = 0;
-    int i;
+    int i = 0;
     while (i < this->number->size() && i < other_MP->size()) {
-      uLong_64t temp = static_cast<uLong_64t>(this->number->at(i)) + other.number->at(i) + carry;
+      uLong_64t temp = static_cast<uLong_64t>(this->number->at(i)) + other_MP->at(i) + carry;
       this->number->at(i) = temp & UINT_MAX;
       carry = temp >> 32;
       ++i;
@@ -194,13 +194,23 @@ public:
       ++i;
     }// End other digits
     
+    if (carry != 0) this->number->push_back(carry);
+    
     return *this;
   }// End of MPInt::operator+=
+  
+  // Addition to produce a new MPInt type
+  // TODO make faster than clone and add (write new vector as you add them)
+  MPInt operator+(const MPInt& mp_add) {
+    MPInt mp_new = *(this->Clone());
+    mp_new += mp_add;
+    return mp_new;
+  }// End of MPInt::operator+
   
   // *-- Functional Utility
   
   // Create a copy of this MPInt object
-  MPInt* Clone() {
+  MPInt* Clone() const {
     MPInt* to_return = new MPInt();
     to_return->SetSign(this->sgn);
     std::vector<uLong_32t>* copy_vec = to_return->GetArray();
