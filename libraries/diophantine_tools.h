@@ -12,6 +12,7 @@
 
 typedef std::pair<uLong_64t, uLong_64t> pell_pair_t;
 
+
 //-----------------------------------------------Forward declare (all methods in file):
 
 //---------------------Tools for Lucas sequences
@@ -31,6 +32,16 @@ pell_pair_t* makePellPair(uLong_64t noncoef, uLong_64t coef);
 pell_pair_t* bhaskaraIterate(pell_pair_t* input,
                              pell_pair_t* base_sol,
                              int pell_root_D);
+
+// Generate the periodic continued fraction representation of sqrt{N}
+// Useful for finding initial solutions to Pell's Equation
+std::vector<int> getRepFracForSqrt(int N,
+                                   bool print = false);
+
+// Use the continued fraction to find the convergent index that yields
+// the smallest solution to x^2 - D y^2 = 1, found from the repetition period.
+
+// TODO implement pell_pair for MPInt type (needs multiplication).
 
 
 //-----------------------------------------------Tools for Lucas sequences
@@ -85,7 +96,7 @@ uLong_64t lllucasMod(Long_64t n,
     }
 
   }return lucas_U;
-}
+}// End of diophantine_tools::lllucasMod
 
 
 //-----------------------------------------------Tools for solving Pell's/Bhaskara's Equation
@@ -96,7 +107,7 @@ pell_pair_t* makePellPair(uLong_64t noncoef, uLong_64t coef) {
   pair->first = noncoef;
   pair->second = coef;
   return pair;
-}
+}// End of diophantine_tools::makePellPair
 
 
 // Perform two iterations of the recursive sequence generation
@@ -115,8 +126,82 @@ pell_pair_t* bhaskaraIterate(pell_pair_t* input,
                  + input->second * base_sol->first);
   
   return sol;
-}
+}// End of diophantine_tools::bhaskaraIterate
 
+
+// Compute the periodic continued fraction representation for the square root of N
+// This output will be a vector of the form {A_0, A_1, A_2, ...} which represents the
+// periodic continued fraction shown graphically as
+//                                    1
+//    sqrt{N} = A_0 + --------------------------------------
+//                                           1
+//                        A_1 + ----------------------------
+//                                                  1
+//                                    A_2 + ----------------
+//                                                  ...
+//
+//            =(DEF) [A_0, A_1, A_2, ...] (notation)
+//
+// The algorithm finds the representation which is periodic, meaning it can be expressed as
+//
+//    sqrt{N} = [A_0; (A_1, A_2, ... )],
+//
+// implying the part in parentheses is repeated periodically.
+// This representation was proven to always exist by Lagrange.
+//
+// This form is especially useful for finding initial solutions to Pell's Equation.
+std::vector<int> getRepFracForSqrt(int N, bool print) {
+  bool debug = true;
+  std::vector<int> repstring;
+  Long_64t root_floor = std::floor(std::sqrt(N));
+  if (root_floor * root_floor == N) { // No repetition for perfect squares--terminate
+    if (print) {
+      std::cout << "sqrt{" << "\033[31m" << N << "\033[39m" << "} = [";
+      std::cout << "\033[31m" << root_floor << "\033[39m" << "]." << std::endl;
+    }return repstring;
+  }// End of perfect square check
+  
+  // Set up for iterative loop
+  Long_64t A = std::floor(std::sqrt(N));
+  Long_64t D = 1;
+  if (print) {
+    std::cout << "sqrt{" << "\033[31m" << N << "\033[39m" << "} = [";
+    std::cout << "\033[31m" << A << "\033[39m" << ";(";
+  }
+  do { // while (D != 1); check last since we begin with D = 1.
+    
+    // Debug
+    if (print && D != 1) std::cout << ',';
+    if (debug && (N - A*A) % D != 0 || D == 0) {
+      std::cout << "ERROR :: nonwhole divisor!" << std::endl;
+      break;
+    }
+    
+    // Perform new D computation first for efficiency
+    D = (N - A * A) / D;
+    
+    // Take the floor and assign it as the repeated index
+    repstring.push_back(A / D); // Int type does floor on its own
+    if (A != D || A == 1) ++repstring.back(); // Floor -> Ceiling
+    
+    
+    // Next A from current values
+    A = repstring.back()*D - A;
+    if (D <= 0) {std::cout << "Failure in D." << std::endl; break;}
+    while (root_floor - A >= D) { // Assure the remaining fraction is less than 1
+      A += D;
+      ++repstring.back();
+    }// End of fraction reduction
+    
+    
+    // Print about current iteration
+    if (print) std::cout << "\033[34m" << repstring.back() << "\033[39m";
+  } while (D != 1); // Iteration denominator is 1, return to sqrt(n) and repeat again.
+  
+  
+  if (print)std::cout << ")]" << std::endl;
+  return repstring;
+}// End of diophantine_tools::getRepFracForSqrt
 
 
 #endif /* diophantine_tools_h */
