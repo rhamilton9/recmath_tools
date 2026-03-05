@@ -9,7 +9,7 @@
 #ifndef MPInt_t
 #define MPInt_t
 
-const uLong_64t B32 = 1L << 32; // base 2^32
+const uLong64_t B32 = 1L << 32; // base 2^32
 
 // Class Definition for MPInt
 //
@@ -26,7 +26,7 @@ private:
   // *-- Class variables
   
   bool sgn;                         // true if negative, false (default) if positive
-  std::vector<uLong_32t>* number;   // Vector of machine-words for base-2^32 representation
+  std::vector<uLong32_t>* number;   // Vector of machine-words for base-2^32 representation
   
   // *-- Debug flags
   
@@ -40,29 +40,29 @@ public:
   // Default: empty vector
   MPInt () {
     this->sgn = false;
-    this->number = new std::vector<uLong_32t>();
+    this->number = new std::vector<uLong32_t>();
     SetFDebugAll(false);
   }
   
+  // Copy Constructor
+  MPInt (MPInt& other) {
+    sgn = other.GetSign();
+    SetFDebugAll(false);
+    number = new std::vector<uLong32_t>();
+    std::vector<uLong32_t>* other_num = other.GetArray();
+    for (std::vector<uLong32_t>::iterator it = other_num->begin(); it != other_num->end(); ++it)
+      number->push_back(*it);
+  }
+  
   // Input: Unsigned 64-bit integer
-  MPInt (uLong_64t input_long) {
+  MPInt (uLong64_t input_long) {
     this->sgn = false;
-    this->number = new std::vector<uLong_32t>();
+    this->number = new std::vector<uLong32_t>();
     this->number->push_back(input_long & UINT_MAX); // fast bitwise modulus
     if (input_long >> 32 != 0)
       this->number->push_back(input_long >> 32);      // fast bitwise division
     SetFDebugAll(false);
   }
-  
-  // ambiguous calls, might be best to default to unsigned for now
-//  // Input: Signed 64-bit integer
-//  MPInt (Long_64t input_long) {
-//    this->sgn = input_long > 0;
-//    this->number = new std::vector<uLong_32t>();
-//    this->number->push_back(input_long & UINT_MAX); // fast bitwise modulus
-//    this->number->push_back(input_long >> 32);      // fast bitwise division
-//    SetFDebugAll(false);
-//  }
   
   // Input: Decimal string
   MPInt (const char* input_cstring) {
@@ -81,14 +81,14 @@ public:
   size_t                    size()            const {return this->number->size();};
   size_t                    GetSize()         const {return this->number->size();};
   bool                      GetSign()         const {return this->sgn;}
-  std::vector<uLong_32t>*   GetArray()        const {return this->number;}
+  std::vector<uLong32_t>*   GetArray()        const {return this->number;}
   
   
   // *-- Simple Setters
   
   void SetSign(bool new_sgn)                                  {sgn = new_sgn; return;}
   void SetSgn(bool new_sgn)                                   {sgn = new_sgn; return;}
-  void SetNumberFormatted(std::vector<uLong_32t>* vec)        {this->number = vec; return;}
+  void SetNumberFormatted(std::vector<uLong32_t>* vec)        {this->number = vec; return;}
   void SetFDebugStringConstructor(bool fnew)                  {fDebug_string_constructor = fnew; return;}
   void SetFDebugStringConverter(bool fnew)                    {fDebug_decimal_converter = fnew; return;}
   // add other debug flags as they're written
@@ -113,8 +113,8 @@ public:
   
   // For Problem 16
   // Construct as a power of 2
-  void SetPowerOf2(uLong_64t power2) {
-    this->number = new std::vector<uLong_32t>();
+  void SetPowerOf2(uLong64_t power2) {
+    this->number = new std::vector<uLong32_t>();
     while (power2 > 32) {
       this->number->push_back(0);
       power2 -= 32;
@@ -151,11 +151,11 @@ public:
   // *-- Arithmetic operators
   
   // a simple instance of 1-digit long multiplication
-  void SimpleMultiply(uLong_32t to_multiply) {
-    uLong_32t carry = 0;
-    for (std::vector<uLong_32t>::iterator number_iterator = this->number->begin();
+  void SimpleMultiply(uLong32_t to_multiply) {
+    uLong32_t carry = 0;
+    for (std::vector<uLong32_t>::iterator number_iterator = this->number->begin();
          number_iterator != this->number->end(); ++number_iterator) {
-      uLong_64t temp = static_cast<uLong_64t>(to_multiply)*(*number_iterator) + carry;
+      uLong64_t temp = static_cast<uLong64_t>(to_multiply)*(*number_iterator) + carry;
       *number_iterator = temp & UINT_MAX;
       carry = temp >> 32;
     }
@@ -163,16 +163,25 @@ public:
     return;
   }//End of MPInt::SimpleMultiply
   
+  // Reassignment
+  MPInt& operator=(const MPInt& other) {
+    sgn = other.GetSign();
+    number->clear();
+    std::vector<uLong32_t>* other_num = other.GetArray();
+    for (std::vector<uLong32_t>::iterator it = other_num->begin(); it != other_num->end(); ++it)
+      number->push_back(*it);
+    return *this;
+  }
   
   // Addition of two MPInt types
   MPInt& operator+=(const MPInt& other) {
-    const std::vector<uLong_32t>* other_MP = other.GetArray();
+    const std::vector<uLong32_t>* other_MP = other.GetArray();
     
     // base case--both MPInts have digits
-    uLong_32t carry = 0;
+    uLong32_t carry = 0;
     int i = 0;
     while (i < this->number->size() && i < other_MP->size()) {
-      uLong_64t temp = static_cast<uLong_64t>(this->number->at(i)) + other_MP->at(i) + carry;
+      uLong64_t temp = static_cast<uLong64_t>(this->number->at(i)) + other_MP->at(i) + carry;
       this->number->at(i) = temp & UINT_MAX;
       carry = temp >> 32;
       ++i;
@@ -180,7 +189,7 @@ public:
     
     // Case: This MPInt is longer than the other
     while (i < this->number->size()) {
-      uLong_64t temp = static_cast<uLong_64t>(this->number->at(i)) + carry;
+      uLong64_t temp = static_cast<uLong64_t>(this->number->at(i)) + carry;
       this->number->at(i) = temp & UINT_MAX;
       carry = temp >> 32;
       ++i;
@@ -188,7 +197,7 @@ public:
     
     // Case: The other MPInt is longer than this
     while (i < other_MP->size()) {
-      uLong_64t temp = static_cast<uLong_64t>(other_MP->at(i)) + carry;
+      uLong64_t temp = static_cast<uLong64_t>(other_MP->at(i)) + carry;
       this->number->at(i) = temp & UINT_MAX;
       carry = temp >> 32;
       ++i;
@@ -209,20 +218,20 @@ public:
   
   // *-- Functional Utility
   
-  // Create a copy of this MPInt object
+  // Create a copy of this MPInt object and return a pointer
   MPInt* Clone() const {
     MPInt* to_return = new MPInt();
     to_return->SetSign(this->sgn);
-    std::vector<uLong_32t>* copy_vec = to_return->GetArray();
-    for (std::vector<uLong_32t>::iterator number_iterator = this->number->begin();
+    std::vector<uLong32_t>* copy_vec = to_return->GetArray();
+    for (std::vector<uLong32_t>::iterator number_iterator = this->number->begin();
          number_iterator != this->number->end(); ++number_iterator)
       copy_vec->push_back(*number_iterator);
     return to_return;
   }
   
-  uLong_64t DecimalDigitSum() {
+  uLong64_t DecimalDigitSum() {
     std::string decimal_digits = GetDigits("decimal");
-    uLong_64t digit_sum = 0;
+    uLong64_t digit_sum = 0;
     for (std::string::iterator it = decimal_digits.begin();
          it != decimal_digits.end(); ++it) {
       digit_sum += *it - '0';
@@ -256,7 +265,7 @@ public:
       std::string outstring;
       if (this->sgn) outstring.append("(-) ");
       outstring.push_back('{');
-      for (std::vector<uLong_32t>::iterator it = number->begin(); it != number->end(); ++it) {
+      for (std::vector<uLong32_t>::iterator it = number->begin(); it != number->end(); ++it) {
         outstring.append(std::to_string(*it));
         if (it == number->end() - 1) break;
         outstring.append(", ");
@@ -289,7 +298,7 @@ private:
   
   // Convert from input decimal string to base-2^32 vector MPInt format
   void ConstructFromDecimalCString(const char* input_cstring) {
-    this->number = new std::vector<uLong_32t>();
+    this->number = new std::vector<uLong32_t>();
     size_t string_size = std::strlen(input_cstring);
     
     // check that the string has content
@@ -304,14 +313,14 @@ private:
     
     // start with first digit
     this->number->push_back(input_cstring[string_size - 1] - '0');
-    std::vector<uLong_64t> cpow_10;
+    std::vector<uLong64_t> cpow_10;
     cpow_10.push_back(1);
     for (int p = string_size - 2; p >= 0 + this->sgn; --p) {
       
       // continue to the next decimal digit: multiply by 10
-      uLong_64t carry = 0;
+      uLong64_t carry = 0;
       for (int t = 0; t < cpow_10.size(); ++t) {
-        uLong_64t placeholder = cpow_10.at(t) * 10 + carry;
+        uLong64_t placeholder = cpow_10.at(t) * 10 + carry;
         cpow_10.at(t) = placeholder & UINT_MAX;
         carry = placeholder >> 32;
         if (carry != 0 && t == cpow_10.size() - 1) {cpow_10.push_back(carry); break;}
@@ -323,12 +332,12 @@ private:
         if (t > this->number->size() - 1) this->number->push_back(0); // check if this b32 digit exisits
         
         // Append the current part of the current base10 digit
-        uLong_64t c_digitpart = (static_cast<uLong_64t>(input_cstring[p] - '0')
+        uLong64_t c_digitpart = (static_cast<uLong64_t>(input_cstring[p] - '0')
                                  * cpow_10.at(t) ) + this->number->at(t);
         this->number->at(t) = c_digitpart & UINT_MAX;
         
         // overflow, must be here to avoid literal int overflow
-        uLong_32t overflow = c_digitpart >> 32;
+        uLong32_t overflow = c_digitpart >> 32;
         int index_overflow = t + 1;
         while (overflow > 0) {// Perform the gradeschool addition algorithm
           if (index_overflow > this->number->size() - 1) {// new digit: no risk of overflow
@@ -337,7 +346,7 @@ private:
           }
           
           // already content here, check for another round of overflow
-          uLong_64t new_digitpart = overflow + this->number->at(index_overflow);
+          uLong64_t new_digitpart = overflow + this->number->at(index_overflow);
           this->number->at(index_overflow) = new_digitpart & UINT_MAX;
           overflow = new_digitpart >> 32;
           ++index_overflow;
@@ -352,7 +361,7 @@ private:
         
         // Print about the current power of 10 in the B32 representation
         std::cout << "\n Power 10^" << string_size - p << ": {";
-        for (std::vector<uLong_64t>::iterator it = cpow_10.begin(); it != cpow_10.end() - 1; ++it) {
+        for (std::vector<uLong64_t>::iterator it = cpow_10.begin(); it != cpow_10.end() - 1; ++it) {
           std::cout << *it << ", ";
         }std::cout << cpow_10.back() << '}' << std::endl;
       }// End of debug print
@@ -373,8 +382,8 @@ private:
   // convert to decimal (base 10) string
   std::string ConvertToDecimalString() {
     if (this->number->size() == 1) return std::to_string(this->number->at(0));
-    std::vector<uLong_64t> decimal_digits;
-    std::vector<uLong_64t> cpow_B32;
+    std::vector<uLong64_t> decimal_digits;
+    std::vector<uLong64_t> cpow_B32;
     decimal_digits.push_back(this->number->at(0));
     cpow_B32.push_back(1);
     
@@ -382,11 +391,11 @@ private:
     for (int i32 = 1; i32 < this->number->size(); ++i32) {
       
       // propagate forward power first, since 10 is a small base
-      for (std::vector<uLong_64t>::iterator it = cpow_B32.begin(); it != cpow_B32.end(); ++it) *it *= B32;
+      for (std::vector<uLong64_t>::iterator it = cpow_B32.begin(); it != cpow_B32.end(); ++it) *it *= B32;
       
       
       // carry forward for proper digits
-      uLong_64t carry = 0;
+      uLong64_t carry = 0;
       for (int t = 0; t < cpow_B32.size(); ++t) {
         std::lldiv_t divbase = lldiv(cpow_B32.at(t) + carry, 10);
         cpow_B32.at(t) = divbase.rem;
@@ -419,14 +428,14 @@ private:
       if (fDebug_decimal_converter) {
         std::cout << "Current digit : " << this->number->at(i32) << std::endl;
         std::cout << "Decimal construction with this digit : ";
-        for (std::vector<uLong_64t>::reverse_iterator it = decimal_digits.rbegin();
+        for (std::vector<uLong64_t>::reverse_iterator it = decimal_digits.rbegin();
              it != decimal_digits.rend(); ++it) {
           std::cout << *it;
         }std::cout << std::endl;
         
         // Print about the current power of B32
         std::cout << "Power B32^" << i32 + 1 << ": ";
-        for (std::vector<uLong_64t>::reverse_iterator it = cpow_B32.rbegin();
+        for (std::vector<uLong64_t>::reverse_iterator it = cpow_B32.rbegin();
              it != cpow_B32.rend(); ++it) {
           std::cout << *it;
         }std::cout << std::endl << std::endl;
@@ -437,7 +446,7 @@ private:
     // convert to ASCII characters
     std::string decimal;
     if (this->sgn) decimal.push_back('-');
-    for (std::vector<uLong_64t>::reverse_iterator it = decimal_digits.rbegin();
+    for (std::vector<uLong64_t>::reverse_iterator it = decimal_digits.rbegin();
          it != decimal_digits.rend(); ++it) {
       decimal.push_back(*it + '0');
     }return decimal;
