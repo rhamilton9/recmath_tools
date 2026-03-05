@@ -9,8 +9,10 @@
 
 #include <ostream>
 #include "../cosmetic/typestyle.h"
+#include "../classes/MPInt_t.cc"
 
-typedef std::pair<uLong_64t, uLong_64t> pell_pair_t;
+typedef std::pair<uLong64_t, uLong64_t> pell_pair_t;
+typedef std::pair<MPInt, MPInt> pell_pair_mpt;
 
 
 //-----------------------------------------------Forward declare (all methods in file):
@@ -18,20 +20,28 @@ typedef std::pair<uLong_64t, uLong_64t> pell_pair_t;
 //---------------------Tools for Lucas sequences
 
 // Iterate a lucas sequence mod n
-uLong_64t lllucasMod(Long_64t n,
-                     Long_64t lucas_P,
-                     Long_64t lucas_Q,
+uLong64_t lllucasMod(Long64_t n,
+                     Long64_t lucas_P,
+                     Long64_t lucas_Q,
                      bool for_prime_test = false);
 
 //---------------------Tools for solving Pell's/Bhaskara's Equation
 
 // Compose data to the pell_pair_t datatype
-pell_pair_t* makePellPair(uLong_64t noncoef, uLong_64t coef);
+pell_pair_t* makePellPair(uLong64_t noncoef, uLong64_t coef);
+
+pell_pair_mpt* makePellPairMP(uLong64_t noncoef, uLong64_t coef);
+
+pell_pair_mpt* makePellPairMP2MP(MPInt noncoef, MPInt coef);
 
 // Iterate via the method proposed by Bhaskara in ancient India
 pell_pair_t* bhaskaraIterate(pell_pair_t* input,
                              pell_pair_t* base_sol,
                              int pell_root_D);
+
+pell_pair_t* bhaskaraIterateMP(pell_pair_mpt* input,
+                               pell_pair_mpt* base_sol,
+                               uLong64_t pell_root_D);
 
 // Generate the periodic continued fraction representation of sqrt{N}
 // Useful for finding initial solutions to Pell's Equation
@@ -54,23 +64,23 @@ std::vector<int> getRepFracForSqrt(int N,
 // x_n = P*x_{n-1} - Q*x_{n-2} (mod n)
 //
 // if requested (useful for primality tests) returns L_{n+1} % n
-uLong_64t lllucasMod(Long_64t n,
-                     Long_64t lucas_P,
-                     Long_64t lucas_Q,
+uLong64_t lllucasMod(Long64_t n,
+                     Long64_t lucas_P,
+                     Long64_t lucas_Q,
                      bool for_prime_test) {
-  uLong_64t seq_stop = n + for_prime_test;
+  uLong64_t seq_stop = n + for_prime_test;
   int get_log2 = 0; // get index of first nonzero bit
   while (seq_stop >> get_log2 != 1) ++get_log2;
   
-  uLong_64t sqrt_benchmark = n / 2;
+  uLong64_t sqrt_benchmark = n / 2;
   
   // initial state: k=1
-  Long_64t lucas_D = (lucas_P*lucas_P - 4*lucas_Q); // descriminant
-  Long_64t lucas_U = 1;
-  Long_64t lucas_V = lucas_P;
-  Long_64t cpow_Q = lucas_Q;
+  Long64_t lucas_D = (lucas_P*lucas_P - 4*lucas_Q); // descriminant
+  Long64_t lucas_U = 1;
+  Long64_t lucas_V = lucas_P;
+  Long64_t cpow_Q = lucas_Q;
   while (--get_log2 >= 0) {
-    uLong_64t cbits = seq_stop >> get_log2; // truncate to one additional bit
+    uLong64_t cbits = seq_stop >> get_log2; // truncate to one additional bit
     
     // make sure U,V are as small as possible before squaring them
 //    if (lucas_U > INT_MAX)
@@ -82,8 +92,8 @@ uLong_64t lllucasMod(Long_64t n,
     
     // iterate once if next bit is 1 rather than 0. (2k->2k+1)
     if (cbits % 2 == 1) {
-      Long_64t lucas_newU = lucas_P * lucas_U + lucas_V;
-      Long_64t lucas_newV = lucas_D * lucas_U + lucas_P * lucas_V;
+      Long64_t lucas_newU = lucas_P * lucas_U + lucas_V;
+      Long64_t lucas_newV = lucas_D * lucas_U + lucas_P * lucas_V;
       
       // divison by 2 mod n: if result is odd, add n
       // This ensures that the correct mod is obtained.
@@ -102,12 +112,20 @@ uLong_64t lllucasMod(Long_64t n,
 //-----------------------------------------------Tools for solving Pell's/Bhaskara's Equation
 
 // Form a pell pair (x,y) which solves some Pell-type equation, x^2 - D y^2 = N
-pell_pair_t* makePellPair(uLong_64t noncoef, uLong_64t coef) {
+pell_pair_t* makePellPair(uLong64_t noncoef, uLong64_t coef) {
   pell_pair_t* pair = new pell_pair_t;
   pair->first = noncoef;
   pair->second = coef;
   return pair;
 }// End of diophantine_tools::makePellPair
+
+
+//pell_pair_mpt* makePellPairMP(MPInt noncoef, MPInt coef) {
+//  pell_pair_mpt* pair = new pell_pair_mpt;
+//  pair->first = noncoef;
+//  pair->second = coef;
+//  return pair;
+//}// End of diophantine_tools::makePellPairMP(MPInt, MPInt)
 
 
 // Perform two iterations of the recursive sequence generation
@@ -153,7 +171,7 @@ pell_pair_t* bhaskaraIterate(pell_pair_t* input,
 std::vector<int> getRepFracForSqrt(int N, bool print) {
   bool debug = true;
   std::vector<int> repstring;
-  Long_64t root_floor = std::floor(std::sqrt(N));
+  Long64_t root_floor = std::floor(std::sqrt(N));
   if (root_floor * root_floor == N) { // No repetition for perfect squares--terminate
     if (print) {
       std::cout << "sqrt{" << "\033[31m" << N << "\033[39m" << "} = [";
@@ -162,8 +180,8 @@ std::vector<int> getRepFracForSqrt(int N, bool print) {
   }// End of perfect square check
   
   // Set up for iterative loop
-  Long_64t A = std::floor(std::sqrt(N));
-  Long_64t D = 1;
+  Long64_t A = std::floor(std::sqrt(N));
+  Long64_t D = 1;
   if (print) {
     std::cout << "sqrt{" << "\033[31m" << N << "\033[39m" << "} = [";
     std::cout << "\033[31m" << A << "\033[39m" << ";(";
@@ -202,6 +220,9 @@ std::vector<int> getRepFracForSqrt(int N, bool print) {
   if (print)std::cout << ")]" << std::endl;
   return repstring;
 }// End of diophantine_tools::getRepFracForSqrt
+
+
+
 
 
 #endif /* diophantine_tools_h */

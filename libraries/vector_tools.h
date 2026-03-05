@@ -29,18 +29,18 @@ void pushUnique(std::vector<int> &vec1, int to_push) {
 }
 
 // Add an element to an ordered vector only if it is not already present
-void pushUnique(std::vector<uLong_32t> &vec1, uLong_32t to_push) {
+void pushUnique(std::vector<uLong32_t> &vec1, uLong32_t to_push) {
   if (vec1.size() == 0 || to_push > vec1.back()) {vec1.push_back(to_push); return;}
-  for (std::vector<uLong_32t>::iterator it1 = vec1.begin(); it1 != vec1.end(); ++it1) {
+  for (std::vector<uLong32_t>::iterator it1 = vec1.begin(); it1 != vec1.end(); ++it1) {
     if (*it1 == to_push) return;
     if (*it1 > to_push) {vec1.emplace(it1, to_push); return;}
   }return;
 }
 
 // Add an element to an ordered vector only if it is not already present
-void pushUnique(std::vector<uLong_64t> &vec1, uLong_64t to_push) {
+void pushUnique(std::vector<uLong64_t> &vec1, uLong64_t to_push) {
   if (vec1.size() == 0 || to_push > vec1.back()) {vec1.push_back(to_push); return;}
-  for (std::vector<uLong_64t>::iterator it1 = vec1.begin(); it1 != vec1.end(); ++it1) {
+  for (std::vector<uLong64_t>::iterator it1 = vec1.begin(); it1 != vec1.end(); ++it1) {
     if (*it1 == to_push) return;
     if (*it1 > to_push) {vec1.emplace(it1, to_push); return;}
   }return;

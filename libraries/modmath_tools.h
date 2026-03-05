@@ -12,8 +12,8 @@
 #include "../cosmetic/typestyle.h"
 
 typedef std::pair<Int_t,    std::pair<Int_t, Int_t> >       GCD_Int_t;
-typedef std::pair<Long_32t, std::pair<Long_32t, Long_32t> > GCD_Long_32t;
-typedef std::pair<Long_64t, std::pair<Long_64t, Long_64t> > GCD_Long_64t;
+typedef std::pair<Long32_t, std::pair<Long32_t, Long32_t> > GCD_Long32_t;
+typedef std::pair<Long64_t, std::pair<Long64_t, Long64_t> > GCD_Long64_t;
 
 //-----------------------------------------------Forward declare (all methods in file):
 
@@ -23,56 +23,56 @@ typedef std::pair<Long_64t, std::pair<Long_64t, Long_64t> > GCD_Long_64t;
 // It doesn't quite work though, the karatsuba algorithm
 //    https://en.wikipedia.org/wiki/Karatsuba_algorithm
 // just isn't the right algorithm for it...
-uLong_64t karatsubaProdMod(uLong_64t a, uLong_64t b, uLong_64t modbase);
+uLong64_t karatsubaProdMod(uLong64_t a, uLong64_t b, uLong64_t modbase);
 
 // An attempt using a more advanced algorithm, using interesting algebra properties
 //    https://en.wikipedia.org/wiki/Montgomery_modular_multiplication
 // 
-uLong_64t montgomeryProdMod(uLong_64t a, uLong_64t b, uLong_64t modbase);
+uLong64_t montgomeryProdMod(uLong64_t a, uLong64_t b, uLong64_t modbase);
 
 // An efficient modular exponentiation algorithm
-uLong_32t fastPowMod(uLong_64t expbase, uLong_32t power, uLong_32t modbase);
+uLong32_t fastPowMod(uLong64_t expbase, uLong32_t power, uLong32_t modbase);
 
-uLong_64t lfastPowMod(uLong_64t expbase, uLong_64t power, uLong_64t modbase);
+uLong64_t lfastPowMod(uLong64_t expbase, uLong64_t power, uLong64_t modbase);
 
 //------------------------Number Theoretic Modular Tools
 
 // Legendre symbol, assumes denominator is odd prime
 Int_t legendreSymbol(Int_t top, Int_t bot_oddprime);
 
-Int_t llegendreSymbol(uLong_32t top, uLong_32t bot_oddprime);
+Int_t llegendreSymbol(uLong32_t top, uLong32_t bot_oddprime);
 
-Int_t lllegendreSymbol(uLong_64t top, uLong_64t bot_oddprime);
+Int_t lllegendreSymbol(uLong64_t top, uLong64_t bot_oddprime);
 
 // Jacobi symbol, requires denominator to be odd positive integer
 Int_t jacobiSymbol(Int_t top, Int_t bot);
 
-Int_t ljacobiSymbol(Long_32t top, Long_32t bot);
+Int_t ljacobiSymbol(Long32_t top, Long32_t bot);
 
-Int_t lljacobiSymbol(Long_64t top, Long_64t bot);
+Int_t lljacobiSymbol(Long64_t top, Long64_t bot);
 
 //------------------------GCD/LCM
 
 // Algorithms to compute the GCD and Bezout coefficients for various types
 GCD_Int_t* extendedEuclidean(Int_t a, Int_t b);
 
-GCD_Long_32t* lextendedEuclidean(Long_32t a, Long_32t b);
+GCD_Long32_t* lextendedEuclidean(Long32_t a, Long32_t b);
 
-GCD_Long_64t* llextendedEuclidean(Long_64t a, Long_64t b);
+GCD_Long64_t* llextendedEuclidean(Long64_t a, Long64_t b);
 
 // Compute LCM using GCD
 Int_t LCM(Int_t a, Int_t b);
 
-uLong_32t lLCM(uLong_32t a, uLong_32t b);
+uLong32_t lLCM(uLong32_t a, uLong32_t b);
 
-uLong_64t llLCM(uLong_64t a, uLong_64t b);
+uLong64_t llLCM(uLong64_t a, uLong64_t b);
 
 // Compute LCM for a vector of integers
 Int_t LCM(std::vector<Int_t>& vec);
 
-uLong_32t LCM(std::vector<uLong_32t>& vec);
+uLong32_t LCM(std::vector<uLong32_t>& vec);
 
-uLong_64t LCM(std::vector<uLong_64t>& vec);
+uLong64_t LCM(std::vector<uLong64_t>& vec);
 
 //------------------------Chinese Remainder Theorem
 
@@ -80,11 +80,11 @@ uLong_64t LCM(std::vector<uLong_64t>& vec);
 Int_t chineseRemainder(Int_t rem1, Int_t rem2,
                          Int_t mod1, Int_t mod2);
 
-Long_32t lchineseRemainder(Long_32t rem1, Long_32t rem2,
-                           Long_32t mod1, Long_32t mod2);
+Long32_t lchineseRemainder(Long32_t rem1, Long32_t rem2,
+                           Long32_t mod1, Long32_t mod2);
 
-Long_64t llchineseRemainder(Long_64t rem1, Long_64t rem2,
-                            Long_64t mod1, Long_64t mod2);
+Long64_t llchineseRemainder(Long64_t rem1, Long64_t rem2,
+                            Long64_t mod1, Long64_t mod2);
 
 
 
@@ -93,16 +93,16 @@ Long_64t llchineseRemainder(Long_64t rem1, Long_64t rem2,
 // Implements the Karatsuba algorithm for multiplication
 // This allows for a safe multiplication of numbers larger than 2^32
 // which would otherwise overflow and lead to errors.
-uLong_64t karatsubaProdMod(uLong_64t a, uLong_64t b, uLong_64t modbase) {
+uLong64_t karatsubaProdMod(uLong64_t a, uLong64_t b, uLong64_t modbase) {
   // mod x^32
-  uLong_64t a_small = a % 4294967296L;
-  uLong_64t b_small = b % 4294967296L;
+  uLong64_t a_small = a % 4294967296L;
+  uLong64_t b_small = b % 4294967296L;
   // shift by 32 bits: equivalent to division by x^32
   a = a >> 32; b = b >> 32;
   
-  uLong_64t prod_large = a * b;
-  uLong_64t prod_small = a_small * b_small;
-  uLong_64t prod_mixed = (a + a_small)*(b + b_small) - prod_large - prod_small;
+  uLong64_t prod_large = a * b;
+  uLong64_t prod_small = a_small * b_small;
+  uLong64_t prod_mixed = (a + a_small)*(b + b_small) - prod_large - prod_small;
   
   /* debug testing:
   std::cout << "bits of a: (" <<  a << "*2^32 + " << a_small << ")." << std::endl;
@@ -132,8 +132,8 @@ uLong_64t karatsubaProdMod(uLong_64t a, uLong_64t b, uLong_64t modbase) {
 // Compute modular powers by a "binary" computation strategy
 // There may be a faster way in general (See Problem 122)
 // but for now this is the fastest method I'm aware of.
-uLong_32t fastPowMod(uLong_64t expbase, uLong_32t power, uLong_32t modbase) {
-  std::vector<std::pair<int, uLong_32t> >* powmod = new std::vector<std::pair<int, uLong_32t> >();
+uLong32_t fastPowMod(uLong64_t expbase, uLong32_t power, uLong32_t modbase) {
+  std::vector<std::pair<int, uLong32_t> >* powmod = new std::vector<std::pair<int, uLong32_t> >();
   powmod->push_back(std::make_pair(1, (expbase % modbase)));
   
   // repeatedly square until that exceeds the power
@@ -154,8 +154,8 @@ uLong_32t fastPowMod(uLong_64t expbase, uLong_32t power, uLong_32t modbase) {
 
 // For all 64-bit integers
 // Take extra care with multiplication to assure no overflow
-uLong_64t lfastPowMod(uLong_64t expbase, uLong_64t power, uLong_64t modbase) {
-  std::vector<std::pair<uLong_64t, uLong_64t> >* powmod = new std::vector<std::pair<uLong_64t, uLong_64t> >();
+uLong64_t lfastPowMod(uLong64_t expbase, uLong64_t power, uLong64_t modbase) {
+  std::vector<std::pair<uLong64_t, uLong64_t> >* powmod = new std::vector<std::pair<uLong64_t, uLong64_t> >();
   powmod->push_back(std::make_pair(1, (expbase % modbase)));
   
   // repeatedly square until that exceeds the power
@@ -195,19 +195,19 @@ uLong_64t lfastPowMod(uLong_64t expbase, uLong_64t power, uLong_64t modbase) {
 // Assumes that the lower number is an odd prime,
 // which is required for the Legendre symbol.
 Int_t legendreSymbol(Int_t top, Int_t bot_oddprime) {
-  uLong_32t cyclemod = fastPowMod(top % bot_oddprime, (bot_oddprime - 1)/2, bot_oddprime);
+  uLong32_t cyclemod = fastPowMod(top % bot_oddprime, (bot_oddprime - 1)/2, bot_oddprime);
   if (cyclemod == bot_oddprime - 1) return -1;
   return static_cast<Int_t>(cyclemod);
 }
 
-Int_t llegendreSymbol(uLong_32t top, uLong_32t bot_oddprime) {
-  uLong_32t cyclemod = fastPowMod(top % bot_oddprime, (bot_oddprime - 1)/2, bot_oddprime);
+Int_t llegendreSymbol(uLong32_t top, uLong32_t bot_oddprime) {
+  uLong32_t cyclemod = fastPowMod(top % bot_oddprime, (bot_oddprime - 1)/2, bot_oddprime);
   if (cyclemod == bot_oddprime - 1) return -1;
   return static_cast<Int_t>(cyclemod);
 }
 
-Int_t lllegendreSymbol(uLong_64t top, uLong_64t bot_oddprime) {
-  uLong_64t cyclemod = fastPowMod(top % bot_oddprime, (bot_oddprime - 1)/2, bot_oddprime);
+Int_t lllegendreSymbol(uLong64_t top, uLong64_t bot_oddprime) {
+  uLong64_t cyclemod = fastPowMod(top % bot_oddprime, (bot_oddprime - 1)/2, bot_oddprime);
   if (cyclemod == bot_oddprime - 1) return -1;
   return static_cast<Int_t>(cyclemod);
 }
@@ -261,7 +261,7 @@ Int_t jacobiSymbol(Int_t top, Int_t bot) {
 }
 
 // Jacobi symbol for 32-bit long input
-Int_t ljacobiSymbol(Long_32t top, Long_32t bot) {
+Int_t ljacobiSymbol(Long32_t top, Long32_t bot) {
   if (bot < 0 || bot % 2 == 0) // Throw error on bad input
     std::cerr << "Error in <modmath_tools>::jacobiSymbol: Bad input." << std::endl;
   
@@ -271,7 +271,7 @@ Int_t ljacobiSymbol(Long_32t top, Long_32t bot) {
   
   // For more efficiency, we can use bitwise operations on jacobi.
   // This requires starting with zero (as a logical bit)
-  Long_32t jacobi = 0;
+  Long32_t jacobi = 0;
   while (top != 0) {
     while (top % 4 == 0) top /= 4; // squares never contribute
     
@@ -289,7 +289,7 @@ Int_t ljacobiSymbol(Long_32t top, Long_32t bot) {
     jacobi ^= top & bot & 2;
     
     // perform Euclidean algorithm (swap top/bot, mod and iterate)
-    Long_32t rem = bot % top;
+    Long32_t rem = bot % top;
     bot = top;
     top = rem;
   }
@@ -301,7 +301,7 @@ Int_t ljacobiSymbol(Long_32t top, Long_32t bot) {
 }
 
 // Jacobi symbol for 64-bit long input
-Int_t lljacobiSymbol(Long_64t top, Long_64t bot) {
+Int_t lljacobiSymbol(Long64_t top, Long64_t bot) {
   if (bot < 0 || bot % 2 == 0) // Throw error on bad input
     std::cerr << "Error in <modmath_tools>::jacobiSymbol: Bad input denom = " << bot << std::endl;
   
@@ -311,7 +311,7 @@ Int_t lljacobiSymbol(Long_64t top, Long_64t bot) {
   
   // For more efficiency, we can use bitwise operations on jacobi.
   // This requires starting with zero (as a logical bit)
-  Long_64t jacobi = 0;
+  Long64_t jacobi = 0;
   while (top != 0) {
     while (top % 4 == 0) top /= 4; // squares never contribute
     
@@ -329,7 +329,7 @@ Int_t lljacobiSymbol(Long_64t top, Long_64t bot) {
     jacobi ^= top & bot & 2;
     
     // perform Euclidean algorithm (swap top/bot, mod and iterate)
-    Long_64t rem = bot % top;
+    Long64_t rem = bot % top;
     bot = top;
     top = rem;
   }
@@ -444,13 +444,13 @@ GCD_Int_t* extendedEuclidean(Int_t a, Int_t b) {
   return sol;
 }
 
-// Version with Long_32t
-GCD_Long_32t* lextendedEuclidean(Long_32t a, Long_32t b) {
+// Version with Long32_t
+GCD_Long32_t* lextendedEuclidean(Long32_t a, Long32_t b) {
   
   // Initialize arrays
-  Long_32t remdr_vec[2];
-  Long_32t bez_a_vec[2];
-  Long_32t bez_b_vec[2];
+  Long32_t remdr_vec[2];
+  Long32_t bez_a_vec[2];
+  Long32_t bez_b_vec[2];
   if (a > b) {
     remdr_vec[0] = a; remdr_vec[1] = b;
     bez_a_vec[0] = 1; bez_a_vec[1] = 0;
@@ -472,17 +472,17 @@ GCD_Long_32t* lextendedEuclidean(Long_32t a, Long_32t b) {
     remdr_vec[1] = cdiv.rem;
     
     // iterate s and t, which track the Bezout coefficients (m-mod inverses)
-    Long_32t bez_a_temp = bez_a_vec[0] - cdiv.quot*bez_a_vec[1];
+    Long32_t bez_a_temp = bez_a_vec[0] - cdiv.quot*bez_a_vec[1];
     bez_a_vec[0] = bez_a_vec[1];
     bez_a_vec[1] = bez_a_temp;
     
-    Long_32t bez_b_temp = bez_b_vec[0] - cdiv.quot*bez_b_vec[1];
+    Long32_t bez_b_temp = bez_b_vec[0] - cdiv.quot*bez_b_vec[1];
     bez_b_vec[0] = bez_b_vec[1];
     bez_b_vec[1] = bez_b_temp;
   }// iterate until rvec is zero, meaning GCD is done.
   
   // assign the results to the GCD.
-  GCD_Long_32t* sol = new GCD_Long_32t;
+  GCD_Long32_t* sol = new GCD_Long32_t;
   sol->first = remdr_vec[0];
   sol->second.first = bez_a_vec[0];
   sol->second.second = bez_b_vec[0];
@@ -490,13 +490,13 @@ GCD_Long_32t* lextendedEuclidean(Long_32t a, Long_32t b) {
   return sol;
 }
 
-// Version with Long_64t
-GCD_Long_64t* llextendedEuclidean(Long_64t a, Long_64t b) {
+// Version with Long64_t
+GCD_Long64_t* llextendedEuclidean(Long64_t a, Long64_t b) {
   
   // Initialize arrays
-  Long_64t remdr_vec[2];
-  Long_64t bez_a_vec[2];
-  Long_64t bez_b_vec[2];
+  Long64_t remdr_vec[2];
+  Long64_t bez_a_vec[2];
+  Long64_t bez_b_vec[2];
   if (a > b) {
     remdr_vec[0] = a; remdr_vec[1] = b;
     bez_a_vec[0] = 1; bez_a_vec[1] = 0;
@@ -518,17 +518,17 @@ GCD_Long_64t* llextendedEuclidean(Long_64t a, Long_64t b) {
     remdr_vec[1] = cdiv.rem;
     
     // iterate s and t, which track the Bezout coefficients (m-mod inverses)
-    Long_64t bez_a_temp = bez_a_vec[0] - cdiv.quot*bez_a_vec[1];
+    Long64_t bez_a_temp = bez_a_vec[0] - cdiv.quot*bez_a_vec[1];
     bez_a_vec[0] = bez_a_vec[1];
     bez_a_vec[1] = bez_a_temp;
     
-    Long_64t bez_b_temp = bez_b_vec[0] - cdiv.quot*bez_b_vec[1];
+    Long64_t bez_b_temp = bez_b_vec[0] - cdiv.quot*bez_b_vec[1];
     bez_b_vec[0] = bez_b_vec[1];
     bez_b_vec[1] = bez_b_temp;
   }// iterate until rvec is zero, meaning GCD is done.
   
   // assign the results to the GCD.
-  GCD_Long_64t* sol = new GCD_Long_64t;
+  GCD_Long64_t* sol = new GCD_Long64_t;
   sol->first = remdr_vec[0];
   sol->second.first = bez_a_vec[0];
   sol->second.second = bez_b_vec[0];
@@ -546,15 +546,15 @@ Int_t LCM(Int_t a, Int_t b) {
   return std::abs(a/gcd->first)*b;
 }
 
-// LCM for uLong_32t
-uLong_32t lLCM(uLong_32t a, uLong_32t b) {
-  GCD_Long_32t* gcd = lextendedEuclidean(a,b);
+// LCM for uLong32_t
+uLong32_t lLCM(uLong32_t a, uLong32_t b) {
+  GCD_Long32_t* gcd = lextendedEuclidean(a,b);
   return (a/gcd->first)*b;
 }
 
-// LCM for uLong_64t
-uLong_64t llLCM(uLong_64t a, uLong_64t b) {
-  GCD_Long_64t* gcd = llextendedEuclidean(a,b);
+// LCM for uLong64_t
+uLong64_t llLCM(uLong64_t a, uLong64_t b) {
+  GCD_Long64_t* gcd = llextendedEuclidean(a,b);
   return (a/gcd->first)*b;
 }
 
@@ -574,27 +574,27 @@ Int_t LCM(std::vector<Int_t>& vec) {
   }return a;
 }
 
-uLong_32t LCM(std::vector<uLong_32t>& vec) {
+uLong32_t LCM(std::vector<uLong32_t>& vec) {
   if (vec.size() == 0) return 0;
   if (vec.size() == 1) return vec.back();
   
-  uLong_32t a = vec[0];
-  uLong_32t b = vec[1];
+  uLong32_t a = vec[0];
+  uLong32_t b = vec[1];
   for (int i = 1; i < vec.size(); ++i) {
-    GCD_Long_32t* gcd = lextendedEuclidean(a,b);
+    GCD_Long32_t* gcd = lextendedEuclidean(a,b);
     a = (a/gcd->first)*b; // LCM
     if (i != vec.size() - 1) b = vec[i+1];
   }return a;
 }
 
-uLong_64t LCM(std::vector<uLong_64t>& vec) {
+uLong64_t LCM(std::vector<uLong64_t>& vec) {
   if (vec.size() == 0) return 0;
   if (vec.size() == 1) return vec.back();
   
-  uLong_64t a = vec[0];
-  uLong_64t b = vec[1];
+  uLong64_t a = vec[0];
+  uLong64_t b = vec[1];
   for (int i = 1; i < vec.size(); ++i) {
-    GCD_Long_64t* gcd = llextendedEuclidean(a,b);
+    GCD_Long64_t* gcd = llextendedEuclidean(a,b);
     a = (a/gcd->first)*b; // LCM
     if (i != vec.size() - 1) b = vec[i+1];
   }return a;
@@ -629,18 +629,18 @@ Int_t chineseRemainder(Int_t rem1, Int_t rem2,
   } return checkmod;
 }
 
-// Version with Long_32t
-Long_32t lchineseRemainder(Long_32t rem1, Long_32t rem2,
-                           Long_32t mod1, Long_32t mod2) {
+// Version with Long32_t
+Long32_t lchineseRemainder(Long32_t rem1, Long32_t rem2,
+                           Long32_t mod1, Long32_t mod2) {
   // Efficiently obtain GCD and Bezout coefficients
-  GCD_Long_32t* bezout = lextendedEuclidean(mod1, mod2);
+  GCD_Long32_t* bezout = lextendedEuclidean(mod1, mod2);
   
   // Check that mods are coprime
   if (bezout->first != 1)
     std::cout << "Warning in Chinese Remainder: Input mods not coprime." << std::endl;
   
   // The bezout coefficients provide the solution
-  Long_32t checkmod = (rem1 * bezout->second.second * mod2
+  Long32_t checkmod = (rem1 * bezout->second.second * mod2
                        + rem2 * bezout->second.first * mod1);
   
   // Check this is the minimal solution
@@ -652,18 +652,18 @@ Long_32t lchineseRemainder(Long_32t rem1, Long_32t rem2,
   } return checkmod;
 }
 
-// Version with Long_64t
-Long_64t llchineseRemainder(Long_64t rem1, Long_64t rem2,
-                            Long_64t mod1, Long_64t mod2) {
+// Version with Long64_t
+Long64_t llchineseRemainder(Long64_t rem1, Long64_t rem2,
+                            Long64_t mod1, Long64_t mod2) {
   // Efficiently obtain GCD and Bezout coefficients
-  GCD_Long_64t* bezout = llextendedEuclidean(mod1, mod2);
+  GCD_Long64_t* bezout = llextendedEuclidean(mod1, mod2);
   
   // Check that mods are coprime
   if (bezout->first != 1)
     std::cout << "Warning in Chinese Remainder: Input mods not coprime." << std::endl;
   
   // The bezout coefficients provide the solution
-  Long_64t checkmod = (rem1 * bezout->second.second * mod2
+  Long64_t checkmod = (rem1 * bezout->second.second * mod2
                        + rem2 * bezout->second.first * mod1);
   
   // Check this is the minimal solution
