@@ -2,9 +2,12 @@
 // Not as fast as GMP but written for my own learning
 //
 // Utils for recreational computuing and math
+// ------------ Changelog ------------
 // Created v1.0 by Ryan Hamilton on July 17th, 2025
 
+
 #include "../cosmetic/typestyle.h"
+
 
 #ifndef MPInt_t
 #define MPInt_t
@@ -39,15 +42,15 @@ public:
   
   // Default: empty vector
   MPInt () {
+    SetFDebugAll(false);
     this->sgn = false;
     this->number = new std::vector<uLong32_t>();
-    SetFDebugAll(false);
   }
   
   // Copy Constructor
-  MPInt (MPInt& other) {
-    sgn = other.GetSign();
+  MPInt (const MPInt& other) {
     SetFDebugAll(false);
+    sgn = other.GetSign();
     number = new std::vector<uLong32_t>();
     std::vector<uLong32_t>* other_num = other.GetArray();
     for (std::vector<uLong32_t>::iterator it = other_num->begin(); it != other_num->end(); ++it)
@@ -56,24 +59,24 @@ public:
   
   // Input: Unsigned 64-bit integer
   MPInt (uLong64_t input_long) {
+    SetFDebugAll(false);
     this->sgn = false;
     this->number = new std::vector<uLong32_t>();
     this->number->push_back(input_long & UINT_MAX); // fast bitwise modulus
     if (input_long >> 32 != 0)
-      this->number->push_back(input_long >> 32);      // fast bitwise division
-    SetFDebugAll(false);
+      this->number->push_back(input_long >> 32);    // fast bitwise division
   }
   
   // Input: Decimal string
   MPInt (const char* input_cstring) {
-    ConstructFromDecimalCString(input_cstring);
     SetFDebugAll(false);
+    ConstructFromDecimalCString(input_cstring);
   }
   
   // Input: Decimal std::string
   MPInt (std::string input_string) {
-    ConstructFromDecimalCString(input_string.c_str());
     SetFDebugAll(false);
+    ConstructFromDecimalCString(input_string.c_str());
   }
   
   // *-- Simple Getters
@@ -148,39 +151,33 @@ public:
     return;
   }
   
-  // *-- Arithmetic operators
-  
-  // a simple instance of 1-digit long multiplication
-  void SimpleMultiply(uLong32_t to_multiply) {
-    uLong32_t carry = 0;
-    for (std::vector<uLong32_t>::iterator number_iterator = this->number->begin();
-         number_iterator != this->number->end(); ++number_iterator) {
-      uLong64_t temp = static_cast<uLong64_t>(to_multiply)*(*number_iterator) + carry;
-      *number_iterator = temp & UINT_MAX;
-      carry = temp >> 32;
-    }
-    if (carry != 0) this->number->push_back(carry);
-    return;
-  }//End of MPInt::SimpleMultiply
+  // *-- C++ object operators
   
   // Reassignment
   MPInt& operator=(const MPInt& other) {
+    std::vector<uLong32_t>* other_num = other.GetArray();
+    if (other_num == this->number) { // check for same pointer address
+      std::cout << "Caught self assignment!" << std::endl;
+      return *this;
+    }// Otherwise safe to copy.
+    
     sgn = other.GetSign();
     number->clear();
-    std::vector<uLong32_t>* other_num = other.GetArray();
     for (std::vector<uLong32_t>::iterator it = other_num->begin(); it != other_num->end(); ++it)
       number->push_back(*it);
     return *this;
   }
   
   // Addition of two MPInt types
+  // TODO currently the operation is unsigned!
   MPInt& operator+=(const MPInt& other) {
     const std::vector<uLong32_t>* other_MP = other.GetArray();
     
     // base case--both MPInts have digits
     uLong32_t carry = 0;
     int i = 0;
-    while (i < this->number->size() && i < other_MP->size()) {
+    while (i < this->number->size() && 
+           i < other_MP->size()) {
       uLong64_t temp = static_cast<uLong64_t>(this->number->at(i)) + other_MP->at(i) + carry;
       this->number->at(i) = temp & UINT_MAX;
       carry = temp >> 32;
@@ -198,7 +195,7 @@ public:
     // Case: The other MPInt is longer than this
     while (i < other_MP->size()) {
       uLong64_t temp = static_cast<uLong64_t>(other_MP->at(i)) + carry;
-      this->number->at(i) = temp & UINT_MAX;
+      this->number->push_back(i) = temp & UINT_MAX;
       carry = temp >> 32;
       ++i;
     }// End other digits
@@ -211,10 +208,36 @@ public:
   // Addition to produce a new MPInt type
   // TODO make faster than clone and add (write new vector as you add them)
   MPInt operator+(const MPInt& mp_add) {
-    MPInt mp_new = *(this->Clone());
+    MPInt mp_new = *(this);
     mp_new += mp_add;
     return mp_new;
   }// End of MPInt::operator+
+  
+  
+  // *-- Custom implementations of certain arithmetic operations
+  
+  // A simple instance of "single-digit" long multiplication
+  void SimpleMultiply(uLong32_t to_multiply) {
+    uLong32_t carry = 0;
+    for (std::vector<uLong32_t>::iterator number_iterator = this->number->begin();
+         number_iterator != this->number->end(); ++number_iterator) {
+      uLong64_t temp = static_cast<uLong64_t>(to_multiply)*(*number_iterator) + carry;
+      *number_iterator = temp & UINT_MAX;
+      carry = temp >> 32;
+    }
+    if (carry != 0) this->number->push_back(carry);
+    return;
+  }//End of MPInt::SimpleMultiply
+  
+  // A simple implementation of the Karatsuba algorithm to square this number
+  // The number previously stored is lost in the process
+  void Square() {
+    std::vector<uLong32_t>* number_initial = this->number;
+    this->number = new std::vector<uLong32_t>();
+    
+    
+  }
+  
   
   // *-- Functional Utility
   
@@ -229,6 +252,7 @@ public:
     return to_return;
   }
   
+  // Add the decimal digits of the number together and return the sum
   uLong64_t DecimalDigitSum() {
     std::string decimal_digits = GetDigits("decimal");
     uLong64_t digit_sum = 0;
