@@ -195,7 +195,7 @@ public:
     // Case: The other MPInt is longer than this
     while (i < other_MP->size()) {
       uLong64_t temp = static_cast<uLong64_t>(other_MP->at(i)) + carry;
-      this->number->push_back(i) = temp & UINT_MAX;
+      this->number->push_back(temp & UINT_MAX);
       carry = temp >> 32;
       ++i;
     }// End other digits
